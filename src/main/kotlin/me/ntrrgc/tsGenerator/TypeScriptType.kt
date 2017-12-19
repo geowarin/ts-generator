@@ -18,10 +18,11 @@ package me.ntrrgc.tsGenerator
 
 internal class TypeScriptType private constructor(val types: List<String>) {
     companion object {
-        fun single(type: String, nullable: Boolean): TypeScriptType {
+        fun single(type: String, nullable: Boolean, nullablesAsOptionals: Boolean): TypeScriptType {
             return TypeScriptType(listOf(type)).let {
                 if (nullable) {
-                    it or TypeScriptType(listOf("null"))
+                    val nullableType = if (nullablesAsOptionals) "undefined" else "null"
+                    it or TypeScriptType(listOf(nullableType))
                 } else {
                     it
                 }

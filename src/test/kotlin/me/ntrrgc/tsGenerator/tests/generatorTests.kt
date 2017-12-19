@@ -35,10 +35,11 @@ fun assertGeneratedCode(klass: KClass<*>,
                         expectedOutput: Set<String>,
                         mappings: Map<KClass<*>, String> = mapOf(),
                         classTransformers: List<ClassTransformer> = listOf(),
-                        ignoreSuperclasses: Set<KClass<*>> = setOf())
+                        ignoreSuperclasses: Set<KClass<*>> = setOf(),
+                        nullablesAsOptionals: Boolean = false)
 {
     val generator = TypeScriptGenerator(listOf(klass), mappings, classTransformers,
-        ignoreSuperclasses, intTypeName = "int")
+        ignoreSuperclasses, intTypeName = "int", nullablesAsOptionals = nullablesAsOptionals)
 
     val expected = expectedOutput
         .map(TypeScriptDefinitionFactory::fromCode)
@@ -173,6 +174,14 @@ interface ClassWithMember {
     """, widget))
     }
 
+    it("handles ClassWithOptionals") {
+        assertGeneratedCode(klass = ClassWithNullables::class, expectedOutput = setOf("""
+    interface ClassWithNullables {
+        widget: Widget | undefined;
+    }
+    """, widget), nullablesAsOptionals = true)
+    }
+
     it("handles ClassWithComplexNullables") {
         assertGeneratedCode(ClassWithComplexNullables::class, setOf("""
     interface ClassWithComplexNullables {
@@ -182,12 +191,29 @@ interface ClassWithMember {
     """))
     }
 
+    it("handles ClassWithComplexOptionals") {
+        assertGeneratedCode(ClassWithComplexNullables::class, setOf("""
+    interface ClassWithComplexNullables {
+        maybeWidgets: (string | undefined)[] | undefined;
+        maybeWidgetsArray: (string | undefined)[] | undefined;
+    }
+    """), nullablesAsOptionals = true)
+    }
+
     it("handles ClassWithNullableList") {
         assertGeneratedCode(ClassWithNullableList::class, setOf("""
     interface ClassWithNullableList {
         strings: string[] | null;
     }
     """))
+    }
+
+    it("handles ClassWithOptinalList") {
+        assertGeneratedCode(ClassWithNullableList::class, setOf("""
+    interface ClassWithNullableList {
+        strings: string[] | undefined;
+    }
+    """), nullablesAsOptionals = true)
     }
 
     it("handles GenericClass") {
