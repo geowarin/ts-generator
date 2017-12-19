@@ -21,6 +21,7 @@ import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import kotlin.reflect.*
 import kotlin.reflect.full.createType
+import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.superclasses
 import kotlin.reflect.jvm.javaType
@@ -78,7 +79,8 @@ class TypeScriptGenerator(
     private val mappings: Map<KClass<*>, String> = mapOf(),
     classTransformers: List<ClassTransformer> = listOf(),
     ignoreSuperclasses: Set<KClass<*>> = setOf(),
-    private val intTypeName: String = "number"
+    private val intTypeName: String = "number",
+    private val nullablesAsOptionals: Boolean = false
 ) {
     private val visitedClasses: MutableSet<KClass<*>> = java.util.HashSet()
     private val generatedDefinitions = mutableListOf<String>()
@@ -121,7 +123,7 @@ class TypeScriptGenerator(
         if (classifier is KClass<*>) {
             val existingMapping = mappings[classifier]
             if (existingMapping != null) {
-                return TypeScriptType.single(mappings[classifier]!!, false)
+                return TypeScriptType.single(mappings[classifier]!!, false, nullablesAsOptionals)
             }
         }
 
@@ -179,7 +181,7 @@ class TypeScriptGenerator(
             }
         }
 
-        return TypeScriptType.single(classifierTsType, kType.isMarkedNullable)
+        return TypeScriptType.single(classifierTsType, kType.isMarkedNullable, nullablesAsOptionals)
     }
 
     private fun generateEnum(klass: KClass<*>): String {
